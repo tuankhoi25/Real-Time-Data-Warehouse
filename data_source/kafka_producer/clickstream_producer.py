@@ -6,6 +6,7 @@ from kafka import KafkaProducer
 
 df = read_csv('data_source/kaggle_dataset/clickstream.csv')
 df['event_timestamp'] = to_datetime(df['event_timestamp'])
+df = df.astype(object).where(df.notnull(), None)
 df = df.sort_values('event_timestamp')
 grouped = df.groupby('event_timestamp')
 prev_timestamp = None

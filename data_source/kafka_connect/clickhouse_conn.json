@@ -1,0 +1,20 @@
+{
+  "name": "clickhouse-sink-connector",
+  "config": {
+    "connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector",
+    "tasks.max": "4",
+    "topics": "tracking.web.events",
+    "hostname": "clickhouse-01",
+    "port": "8123",
+    "database": "idk",
+    "username": "default",
+    "password": "",
+    "ssl": "false",
+    "jdbcConnectionProperties": "",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "schemas.enable": "false",
+    "exactlyOnce": "true",
+    "keeperOnCluster": "cluster_2S_2R"
+  }
+}

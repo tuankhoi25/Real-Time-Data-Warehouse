@@ -6,11 +6,23 @@
 kafka:
   # Brokers is a list of bootstrap servers with ports.
   brokers:
-    - "broker-1:19092"
-    - "broker-2:19092"
-    - "broker-3:19092"
+    - "kafka-broker-01:19092"
+    - "kafka-broker-02:19092"
+    - "kafka-broker-03:19092"
   # Optional: Client ID used to identify Redpanda Console to the Kafka cluster.
   clientId: "console"
+
+#----------------------------------------------------------------------------
+# Kafka Connect configuration (optional)
+#----------------------------------------------------------------------------
+kafkaConnect:
+  enabled: true
+  connectTimeout: 15s
+  readTimeout: 60s
+  requestTimeout: 6s
+  clusters:
+    - name: clickHouse-connect
+      url: "http://kafka-connect:8083"
 
 #----------------------------------------------------------------------------
 # Redpanda Console settings

@@ -1,7 +1,7 @@
 #/bin/bash
 
 /opt/kafka/bin/kafka-topics.sh \
-    --bootstrap-server broker-2:19092 \
+    --bootstrap-server kafka-broker-02:19092 \
     --create \
     --topic tracking.web.events \
     --partitions 1 \
