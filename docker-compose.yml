@@ -8,6 +8,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - ${POSTGRES_PORT}:5432
+    command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10"]
     volumes:
       - ./data_source/postgres:/docker-entrypoint-initdb.d
       - ./data_source/kaggle_dataset:/kaggle_dataset
@@ -396,19 +397,19 @@ services:
   kafka-connect-init:
     image: curlimages/curl:8.17.0
     hostname: kafka-connect-init
-    container_name: kkafka-connect-init
+    container_name: kafka-connect-init
     volumes:
-      - ./data_source/kafka_connect/clickhouse_conn.json:/clickhouse_conn.json
-    command: >
-      sh -c "
-        echo 'Waiting for Kafka Connect to be ready...';
-        while [ $(curl -s -o /dev/null -w %{http_code} http://kafka-connect:8083/connectors) -ne 200 ]; do
-          sleep 5;
-        done;
-        echo 'Kafka Connect is up! Registering ClickHouse Connector...';
-        curl -X POST -H 'Content-Type: application/json' --data @/clickhouse_conn.json http://kafka-connect:8083/connectors;
-        echo 'Done!'
-      "
+      - ./data_source/kafka_connect:/kafka_configs
+    command:
+      - sh
+      - -c
+      - |
+        until [ "$(curl -s -o /dev/null -w '%{http_code}' http://kafka-connect:8083/connectors)" -eq 200 ]; do echo "Waiting..."; sleep 5; done;
+        echo "Connect is ONLINE";
+        for f in /kafka_configs/*.json; do
+          echo "Processing $$f";
+          curl -i -X POST -H "Content-Type: application/json" --data @"$$f" http://kafka-connect:8083/connectors;
+        done
     depends_on:
       kafka-connect:
         condition: service_healthy

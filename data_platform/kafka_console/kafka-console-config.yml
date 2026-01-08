@@ -21,7 +21,7 @@ kafkaConnect:
   readTimeout: 60s
   requestTimeout: 6s
   clusters:
-    - name: clickHouse-connect
+    - name: connectors
       url: "http://kafka-connect:8083"
 
 #----------------------------------------------------------------------------
