@@ -1,4 +1,4 @@
-CREATE TABLE idk.`tracking.web.events` ON CLUSTER 'cluster_2S_2R' (
+CREATE TABLE IF NOT EXISTS idk.`tracking.web.events.local` ON CLUSTER 'cluster_2S_2R' (
     event_id UInt64,
     session_id UInt64,
     event_timestamp DateTime,
@@ -15,5 +15,9 @@ CREATE TABLE idk.`tracking.web.events` ON CLUSTER 'cluster_2S_2R' (
     source LowCardinality(String),
     country FixedString(2)
 ) 
-ENGINE = MergeTree()
+ENGINE = ReplicatedMergeTree('/clickhouse/tables/{database}/{table}/{shard}', '{replica}')
 ORDER BY (event_timestamp, event_id);
+
+CREATE TABLE IF NOT EXISTS idk.`tracking.web.events`
+ON CLUSTER cluster_2S_2R
+ENGINE = Distributed('cluster_2S_2R', 'idk', 'tracking.web.events.local', rand());
