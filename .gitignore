@@ -6,3 +6,6 @@ data_source/kaggle_dataset/*
 
 .DS_Store
 **/.DS_Store
+
+tmp.txt
+docker/apache_flink/*.tgz

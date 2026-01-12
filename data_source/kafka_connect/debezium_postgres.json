@@ -2,6 +2,7 @@
   "name": "debezium-postgres-connector",  
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector", 
+    "tasks.max": "4",
     "database.hostname": "postgres", 
     "database.port": "5432", 
     "database.user": "postgres", 
@@ -10,6 +11,12 @@
     "topic.prefix": "db", 
     "table.include.list": "public.product,public.customer,public.orders,public.order_item,public.review",
     "plugin.name": "pgoutput",
-    "decimal.handling.mode": "double"
+    "decimal.handling.mode": "double",
+
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.add.fields": "op",
+    "transforms.unwrap.delete.handling.mode": "rewrite",
+    "transforms.unwrap.drop.tombstones": "true"
   }
 }

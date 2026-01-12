@@ -37,7 +37,8 @@ try:
         records = frame.to_dict(orient='records')
         for record in records:
             print(record)
-            producer.send('tracking.web.events', value=record)
+            kafka_key = str(record['session_id']).encode('utf-8')
+            producer.send('tracking.web.events', value=record, key=kafka_key)
         
         producer.flush()
         print(f"Đã gửi {len(records)} events của mốc thời gian: {timestamp}")

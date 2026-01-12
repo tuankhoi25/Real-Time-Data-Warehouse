@@ -357,9 +357,9 @@ services:
   kafka-connect:
     image: apache/kafka:4.1.1
     hostname: kafka-connect
-    container_name: kafka-connect
+    scale: 2
     ports:
-      - 8083:8083
+      - 8083-8084:8083
     volumes:
       - ./data_platform/kafka_connect/config/connect-distributed.properties:/opt/kafka/config/connect-distributed.properties
       - ./data_platform/kafka_connect/plugins:/opt/connectors
@@ -405,9 +405,7 @@ services:
       - -c
       - |
         until [ "$(curl -s -o /dev/null -w '%{http_code}' http://kafka-connect:8083/connectors)" -eq 200 ]; do echo "Waiting..."; sleep 5; done;
-        echo "Connect is ONLINE";
         for f in /kafka_configs/*.json; do
-          echo "Processing $$f";
           curl -i -X POST -H "Content-Type: application/json" --data @"$$f" http://kafka-connect:8083/connectors;
         done
     depends_on:
@@ -441,6 +439,32 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
+
+  # jobmanager:
+  #   hostname: jobmanager
+  #   container_name: jobmanager
+  #   build:
+  #     context: .
+  #     dockerfile: docker/apache_flink/Dockerfile
+  #   image: apache/flink:2.2.0-python3.12.11-java17
+  #   ports:
+  #     - 8081:8081
+  #   command: jobmanager.sh start-foreground
+  #   volumes:
+  #     - ./data_platform/apache_flink/config.yaml:/opt/flink/conf/config.yaml
+
+  # taskmanager:
+  #   hostname: taskmanager
+  #   build:
+  #     context: .
+  #     dockerfile: docker/apache_flink/Dockerfile
+  #   image: apache/flink:2.2.0-python3.12.11-java17
+  #   depends_on:
+  #     - jobmanager
+  #   command: taskmanager.sh start-foreground
+  #   scale: 2
+  #   volumes:
+  #     - ./data_platform/apache_flink/config.yaml:/opt/flink/conf/config.yaml
 
 volumes:
   postgres:

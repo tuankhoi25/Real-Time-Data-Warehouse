@@ -1,5 +1,9 @@
 # Real-Time-Data-Warehouse
 
+# Đúc kết
+
+Hiểu được cách thiết kế để tích hợp ClickHouse - Apache Kafka cho từng trường hợp. Chi tiết tại [Notion](https://www.notion.so/How-to-integrate-ClickHouse-with-Apache-Kafka-2e5b74c8fed180589fa8c452141f551e?source=copy_link)
+
 # Bộ dữ liệu 
 
 Dữ liệu được sử dụng cho project này sẽ là bộ dữ liệu về một website bán hàng được cung cấp bởi [Kaggle](https://www.kaggle.com/datasets/wafaaelhusseini/e-commerce-transactions-clickstream).

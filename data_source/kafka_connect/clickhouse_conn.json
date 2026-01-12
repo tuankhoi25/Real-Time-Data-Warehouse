@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector",
     "tasks.max": "4",
-    "topics": "tracking.web.events",
+    "topics": "tracking.web.events,db.public.product,db.public.customer,db.public.orders,db.public.order_item,db.public.review",
     "hostname": "clickhouse-01",
     "port": "8123",
     "database": "idk",
@@ -15,6 +15,11 @@
     "value.converter.schemas.enable": "false",
     "schemas.enable": "false",
     "exactlyOnce": "true",
-    "keeperOnCluster": "cluster_2S_2R"
+    "keeperOnCluster": "cluster_2S_2R",
+    "clickhouseSettings": "async_insert=1,wait_for_async_insert=1,async_insert_max_data_size=16777216,async_insert_busy_timeout_ms=1000,async_insert_stale_timeout_ms=0,async_insert_max_query_number=100",
+    "consumer.max.poll.records": "10000",
+    "consumer.max.partition.fetch.bytes": "5242880",
+    "consumer.fetch.min.bytes": "1048576",
+    "consumer.fetch.max.wait.ms": "500"
   }
 }
