@@ -1,3 +1,4 @@
 ipykernel==7.1.0
 pandas==2.3.3
 kafka-python==2.3.0
+clickhouse-connect==0.10.0

@@ -1,12 +1,17 @@
 <clickhouse replace="true">
+    <max_server_memory_usage>1000000000</max_server_memory_usage>
+    <max_thread_pool_size>1024</max_thread_pool_size>
+    <mark_cache_size>256000000</mark_cache_size>
+    <uncompressed_cache_size>0</uncompressed_cache_size>
     <logger>
-        <level>debug</level>
+        <level>warning</level>
         <log>/var/log/clickhouse-server/clickhouse-server.log</log>
         <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
-        <size>1000M</size>
-        <count>3</count>
+        <size>50M</size>
+        <count>1</count>
     </logger>
-    <display_name>cluster_2S_2R node 1</display_name>
+    <timezone>Asia/Ho_Chi_Minh</timezone>
+    <display_name>cluster_1S_2R node 1</display_name>
     <listen_host>0.0.0.0</listen_host>
     <http_port>8123</http_port>
     <tcp_port>9000</tcp_port>
@@ -22,7 +27,7 @@
         <path>/clickhouse/task_queue/ddl</path>
     </distributed_ddl>
     <remote_servers>
-        <cluster_2S_2R>
+        <cluster_1S_2R>
             <shard>
                 <internal_replication>true</internal_replication>
                 <replica>
@@ -30,22 +35,11 @@
                     <port>9000</port>
                 </replica>
                 <replica>
-                    <host>clickhouse-03</host>
-                    <port>9000</port>
-                </replica>
-            </shard>
-            <shard>
-                <internal_replication>true</internal_replication>
-                <replica>
                     <host>clickhouse-02</host>
                     <port>9000</port>
                 </replica>
-                <replica>
-                    <host>clickhouse-04</host>
-                    <port>9000</port>
-                </replica>
             </shard>
-        </cluster_2S_2R>
+        </cluster_1S_2R>
     </remote_servers>
     <zookeeper>
         <node>

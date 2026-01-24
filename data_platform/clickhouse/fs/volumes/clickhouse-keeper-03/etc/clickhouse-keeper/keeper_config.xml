@@ -1,10 +1,10 @@
 <clickhouse replace="true">
     <logger>
-        <level>information</level>
+        <level>warning</level>
         <log>/var/log/clickhouse-keeper/clickhouse-keeper.log</log>
         <errorlog>/var/log/clickhouse-keeper/clickhouse-keeper.err.log</errorlog>
-        <size>1000M</size>
-        <count>3</count>
+        <size>50M</size>
+        <count>1</count>
     </logger>
     <listen_host>0.0.0.0</listen_host>
     <keeper_server>

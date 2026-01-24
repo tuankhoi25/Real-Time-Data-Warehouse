@@ -10,7 +10,7 @@ services:
       - ${POSTGRES_PORT}:5432
     command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10"]
     volumes:
-      - ./data_source/postgres:/docker-entrypoint-initdb.d
+      - ./data_source/postgres/:/docker-entrypoint-initdb.d
       - ./data_source/kaggle_dataset:/kaggle_dataset
       - postgres:/var/lib/postgresql/data
     healthcheck:
@@ -28,6 +28,7 @@ services:
       - ./data_platform/clickhouse/fs/volumes/clickhouse-01/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
       - ./data_platform/clickhouse/fs/volumes/clickhouse-01/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
       - ./data_source/clickhouse:/docker-entrypoint-initdb.d/
+      - clickhouse-01:/var/lib/clickhouse
     ports:
       - 8123:8123
       - 9000:9000
@@ -53,59 +54,10 @@ services:
     volumes:
       - ./data_platform/clickhouse/fs/volumes/clickhouse-02/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
       - ./data_platform/clickhouse/fs/volumes/clickhouse-02/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
+      - clickhouse-02:/var/lib/clickhouse
     ports:
       - 8124:8123
       - 9001:9000
-    depends_on:
-      clickhouse-keeper-01:
-        condition: service_healthy
-      clickhouse-keeper-02:
-        condition: service_healthy
-      clickhouse-keeper-03:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  clickhouse-03:
-    image: "clickhouse/clickhouse-server:25.11"
-    user: "101:101"
-    container_name: clickhouse-03
-    hostname: clickhouse-03
-    volumes:
-      - ./data_platform/clickhouse/fs/volumes/clickhouse-03/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
-      - ./data_platform/clickhouse/fs/volumes/clickhouse-03/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
-    ports:
-      - 8125:8123
-      - 9002:9000
-    depends_on:
-      clickhouse-keeper-01:
-        condition: service_healthy
-      clickhouse-keeper-02:
-        condition: service_healthy
-      clickhouse-keeper-03:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  clickhouse-04:
-    image: "clickhouse/clickhouse-server:25.11"
-    user: "101:101"
-    container_name: clickhouse-04
-    hostname: clickhouse-04
-    volumes:
-      - ./data_platform/clickhouse/fs/volumes/clickhouse-04/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
-      - ./data_platform/clickhouse/fs/volumes/clickhouse-04/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
-    ports:
-      - 8126:8123
-      - 9003:9000
     depends_on:
       clickhouse-keeper-01:
         condition: service_healthy
@@ -189,8 +141,6 @@ services:
         condition: service_healthy
       clickhouse-02:
         condition: service_healthy
-      clickhouse-03:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9093 || exit 1"]
       interval: 10s
@@ -218,8 +168,6 @@ services:
         condition: service_healthy
       clickhouse-02:
         condition: service_healthy
-      clickhouse-03:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9093 || exit 1"]
       interval: 10s
@@ -246,8 +194,6 @@ services:
       clickhouse-01:
         condition: service_healthy
       clickhouse-02:
-        condition: service_healthy
-      clickhouse-03:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9093 || exit 1"]
@@ -357,20 +303,21 @@ services:
   kafka-connect:
     image: apache/kafka:4.1.1
     hostname: kafka-connect
-    scale: 2
+    scale: 1
     ports:
       - 8083-8084:8083
+    environment:
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx800M"
     volumes:
       - ./data_platform/kafka_connect/config/connect-distributed.properties:/opt/kafka/config/connect-distributed.properties
       - ./data_platform/kafka_connect/plugins:/opt/connectors
-    command: >
-      bash -c "/opt/kafka/bin/connect-distributed.sh /opt/kafka/config/connect-distributed.properties"
+    command: ["bash", "-c", "/opt/kafka/bin/connect-distributed.sh /opt/kafka/config/connect-distributed.properties"]
     depends_on:
-      kafka-controller-01:
+      kafka-broker-01:
         condition: service_healthy
-      kafka-controller-02:
+      kafka-broker-02:
         condition: service_healthy
-      kafka-controller-03:
+      kafka-broker-03:
         condition: service_healthy
     healthcheck:
       test:
@@ -382,8 +329,7 @@ services:
   
   kafka-init:
     image: apache/kafka:4.1.1
-    command: >
-      bash -c "chmod +x /create_topic.sh && /create_topic.sh"
+    command: ["bash", "-c", "chmod +x /create_topic.sh && /create_topic.sh"]
     volumes:
       - ./data_source/kafka_producer/create_topic.sh:/create_topic.sh
     depends_on:
@@ -440,34 +386,42 @@ services:
       retries: 3
       start_period: 5s
 
-  # jobmanager:
-  #   hostname: jobmanager
-  #   container_name: jobmanager
-  #   build:
-  #     context: .
-  #     dockerfile: docker/apache_flink/Dockerfile
-  #   image: apache/flink:2.2.0-python3.12.11-java17
-  #   ports:
-  #     - 8081:8081
-  #   command: jobmanager.sh start-foreground
-  #   volumes:
-  #     - ./data_platform/apache_flink/config.yaml:/opt/flink/conf/config.yaml
-
-  # taskmanager:
-  #   hostname: taskmanager
-  #   build:
-  #     context: .
-  #     dockerfile: docker/apache_flink/Dockerfile
-  #   image: apache/flink:2.2.0-python3.12.11-java17
-  #   depends_on:
-  #     - jobmanager
-  #   command: taskmanager.sh start-foreground
-  #   scale: 2
-  #   volumes:
-  #     - ./data_platform/apache_flink/config.yaml:/opt/flink/conf/config.yaml
+  metabase:
+    hostname: metabase
+    container_name: metabase
+    image: metabase/metabase:v0.58.3.1
+    ports:
+      - 3000:3000
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${METADATA_POSTGRES_USER}
+      MB_DB_PASS: ${METADATA_POSTGRES_PASSWORD}
+      MB_DB_DBNAME: metabaseappdb
+      JAVA_OPTS: "-Xms256m -Xmx800m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka-broker-01:
+        condition: service_healthy
+      kafka-broker-02:
+        condition: service_healthy
+      kafka-broker-03:
+        condition: service_healthy
+    volumes:
+      - ./data_platform/metabase/plugins:/plugins:ro
+    healthcheck:
+      test: curl --fail -I http://localhost:3000/api/health || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres:
+    external: true
+  clickhouse-01:
+  clickhouse-02:
   kafka-controller-01:
   kafka-controller-02:
   kafka-controller-03:
